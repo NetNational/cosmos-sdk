@@ -14,11 +14,6 @@ type Uint struct {
 	i *big.Int
 }
 
-// BigInt converts Uint to big.Unt
-func (u Uint) BigInt() *big.Int {
-	return new(big.Int).Set(u.i)
-}
-
 // NewUintFromBigUint constructs Uint from big.Uint
 func NewUintFromBigInt(i *big.Int) Uint {
 	if err := UintOverflow(i); err != nil {
@@ -28,7 +23,7 @@ func NewUintFromBigInt(i *big.Int) Uint {
 }
 
 // NewUint constructs Uint from int64
-func NewUintFromUint64(n uint64) Uint {
+func NewUint(n uint64) Uint {
 	i := new(big.Int)
 	i.SetUint64(n)
 	return NewUintFromBigInt(i)
@@ -44,10 +39,10 @@ func NewUintFromString(s string) Uint {
 }
 
 // ZeroUint returns unsigned zero.
-func ZeroUint() Uint { return NewUintFromUint64(0) }
+func ZeroUint() Uint { return NewUint(0) }
 
 // OneUint returns Uint value with one
-func OneUint() Uint { return NewUintFromUint64(1) }
+func OneUint() Uint { return NewUint(1) }
 
 // Uint64 converts Uint to uint64
 // Panics if the value is out of range
@@ -77,17 +72,20 @@ func (u Uint) LT(u2 Uint) bool {
 	return lt(u.i, u2.i)
 }
 
+// LTE returns true if first Uint is lesser than or equal to the second
+func (u Uint) LTE(u2 Uint) bool { return !u.GTE(u2) }
+
 // Add adds Uint from another
 func (u Uint) Add(u2 Uint) Uint { return NewUintFromBigInt(new(big.Int).Add(u.i, u2.i)) }
 
 // Add convert uint64 and add it to Uint
-func (u Uint) AddUint64(u2 uint64) Uint { return u.Add(NewUintFromUint64(u2)) }
+func (u Uint) AddUint64(u2 uint64) Uint { return u.Add(NewUint(u2)) }
 
 // Add adds Uint from another
 func (u Uint) Sub(u2 Uint) Uint { return NewUintFromBigInt(new(big.Int).Sub(u.i, u2.i)) }
 
 // Add adds Uint from another
-func (u Uint) SubUint64(u2 uint64) Uint { return u.Sub(NewUintFromUint64(u2)) }
+func (u Uint) SubUint64(u2 uint64) Uint { return u.Sub(NewUint(u2)) }
 
 // Mul multiples two Uints
 func (u Uint) Mul(u2 Uint) (res Uint) {
@@ -95,13 +93,13 @@ func (u Uint) Mul(u2 Uint) (res Uint) {
 }
 
 // Mul multiples two Uints
-func (u Uint) MulUint64(u2 uint64) (res Uint) { return u.Mul(NewUintFromUint64(u2)) }
+func (u Uint) MulUint64(u2 uint64) (res Uint) { return u.Mul(NewUint(u2)) }
 
 // Div divides Uint with Uint
 func (u Uint) Div(u2 Uint) (res Uint) { return NewUintFromBigInt(div(u.i, u2.i)) }
 
 // Div divides Uint with uint64
-func (u Uint) DivUint64(u2 uint64) Uint { return u.Div(NewUintFromUint64(u2)) }
+func (u Uint) DivUint64(u2 uint64) Uint { return u.Div(NewUint(u2)) }
 
 // Return the minimum of the Uints
 func MinUint(u1, u2 Uint) Uint { return NewUintFromBigInt(min(u1.i, u2.i)) }
