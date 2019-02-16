@@ -36,15 +36,18 @@ func NewUintFromUint64(n uint64) Uint {
 
 // NewUintFromString constructs Uint from string
 func NewUintFromString(s string) Uint {
-	i, err := newUintFromString(s)
+	u, err := ParseUint(s)
 	if err != nil {
-		panic(fmt.Errorf("cannot convert %q to big.Int", s))
+		panic(err)
 	}
-	return NewUintFromBigInt(i)
+	return u
 }
 
+// ZeroUint returns unsigned zero.
+func ZeroUint() Uint { return NewUintFromUint64(0) }
+
 // OneUint returns Uint value with one
-func OneUint() Uint { return Uint{big.NewInt(1)} }
+func OneUint() Uint { return NewUintFromUint64(1) }
 
 // Uint64 converts Uint to uint64
 // Panics if the value is out of range
@@ -55,6 +58,9 @@ func (u Uint) Uint64() uint64 {
 	return u.i.Uint64()
 }
 
+// IsZero returns 1 if the uint equals to 0.
+func (u Uint) IsZero() bool { return u.Equal(ZeroUint()) }
+
 // Equal compares two Uints
 func (u Uint) Equal(u2 Uint) bool { return equal(u.i, u2.i) }
 
@@ -62,6 +68,9 @@ func (u Uint) Equal(u2 Uint) bool { return equal(u.i, u2.i) }
 func (u Uint) GT(u2 Uint) bool {
 	return gt(u.i, u2.i)
 }
+
+// GTE returns true if first Uint is greater than second
+func (u Uint) GTE(u2 Uint) bool { return u.GT(u2) || u.Equal(u2) }
 
 // LT returns true if first Uint is lesser than second
 func (u Uint) LT(u2 Uint) bool {
@@ -152,10 +161,13 @@ func UintOverflow(i *big.Int) error {
 	return nil
 }
 
-func newUintFromString(s string) (*big.Int, error) {
+func ParseUint(s string) (Uint, error) {
 	i, ok := new(big.Int).SetString(s, 0)
 	if !ok {
-		return nil, fmt.Errorf("cannot convert %q to big.Int", s)
+		return Uint{}, fmt.Errorf("cannot convert %q to big.Int", s)
 	}
-	return i, nil
+	if err := UintOverflow(i); err != nil {
+		return Uint{}, err
+	}
+	return Uint{i}, nil
 }
